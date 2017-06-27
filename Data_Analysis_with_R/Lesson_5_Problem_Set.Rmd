@@ -1,0 +1,183 @@
+---
+title: "Lesson 5 Problem Set Exploring Two Variables"
+output: html_notebook
+---
+
+*** 
+### 1. Price vs x
+```{r}
+library(ggplot2)
+data(diamonds)
+# Your first task is to create a
+# scatterplot of price vs x.
+# using the ggplot syntax.
+ggplot(diamonds, aes(x=x, y=price)) + geom_point()
+```
+
+***
+### 2. Corelation between "price and x", "price and y", "price and z"
+```{r}
+cor.test(diamonds$price, diamonds$x)
+cor.test(diamonds$price, diamonds$y)
+cor.test(diamonds$price, diamonds$z)
+```
+
+***
+### 3. Price vs Depth
+```{r}
+ggplot(diamonds, aes(x=depth, y=price)) + geom_point()
+```
+***
+### 4.  Adjustments -- Price vs. Depth
+```{r}
+# Change the code to make the transparency of the
+# points to be 1/100 of what they are now and mark
+# the x-axis every 2 units. 
+ggplot(data = diamonds, aes(x = depth, y = price)) + 
+  geom_point(alpha=0.01) +
+  scale_x_continuous(breaks=seq(42,80,2))
+```
+***
+### 5. Correlation - Price vs Depth
+```{r}
+cor.test(diamonds$price, diamonds$depth)
+```
+***
+### 6. Price vs Carat
+```{r}
+# Create a scatterplot of price vs carat
+# and omit the top 1% of price and carat
+# values.
+price_99 <- quantile(diamonds$price, 0.99)
+carat_99 <- quantile(diamonds$carat, 0.99)
+ggplot(subset(diamonds, price < price_99 & carat < carat_99), aes(x=carat, y=price)) +
+  geom_point()
+```
+***
+### 7. Price vs Volume
+```{r}
+# Create a scatterplot of price vs. volume (x * y * z).
+# This is a very rough approximation for a diamond's volume.
+diamonds$volume <- diamonds$x * diamonds$y * diamonds$z
+ggplot(diamonds, aes(x=volume, y=price)) + geom_point() +
+  xlim(0, 500)
+```
+***
+### 8. Correlations on Subsets
+```{r}
+# What's the correlation of price and volume?
+# Exclude diamonds that have a volume of zero or
+# that are >= 800.  
+with(subset(diamonds, 0 < volume & volume < 800), cor.test(price, volume))
+```
+***
+### 9. Adjustments - price vs volume
+```{r}
+# Subset the data to exclude diamonds with a volume
+# greater than or equal to 800. Also, exclude diamonds
+# with a volume of 0. Adjust the transparency of the
+# points and add a linear model to the plot.
+ggplot(subset(diamonds, 0 < volume & volume < 800), aes(x=volume, y=price)) + 
+  geom_point(alpha=0.05) +
+  geom_smooth(method='lm', color='red')
+```
+***
+### 10. Mean Price by CLarity
+```{r}
+library(dplyr)
+diamondsByClarity <- group_by(diamonds, clarity) %>%
+  summarise( mean_price=mean(price),
+             median_price=median(price),
+             min_price=min(price),
+             max_price=max(price),
+             n=n())
+diamondsByClarity
+```
+
+***
+### 11. Bar CHarts of Mean Price
+```{r}
+diamonds_by_clarity <- group_by(diamonds, clarity)
+diamonds_mp_by_clarity <- summarise(diamonds_by_clarity, mean_price = mean(price))
+
+diamonds_by_color <- group_by(diamonds, color)
+diamonds_mp_by_color <- summarise(diamonds_by_color, mean_price = mean(price))
+# We've created summary data frames with the mean price
+# by clarity and color. You can run the code in R to
+# verify what data is in the variables diamonds_mp_by_clarity
+# and diamonds_mp_by_color.
+
+# Your task is to write additional code to create two bar plots
+# on one output image using the grid.arrange() function from the package
+# gridExtra.
+
+library(gridExtra)
+p1 <- ggplot(diamonds_mp_by_clarity, aes(x=clarity, y=mean_price)) + geom_bar(stat='identity')
+p2 <- ggplot(diamonds_mp_by_color, aes(x=color, y=mean_price)) + geom_bar(stat='identity')
+grid.arrange(p1,p2,ncol=1)
+```
+***
+### 12. Gapminder Revisiter
+```{r}
+# The Gapminder website contains over 500 data sets with information about
+# the world's population. Your task is to continue the investigation you did at the
+# end of Problem Set 3 or you can start fresh and choose a different
+# data set from Gapminder.
+
+# If you're feeling adventurous or want to try some data munging see if you can
+# find a data set or scrape one from the web.
+
+# In your investigation, examine pairs of variable and create 2-5 plots that make
+# use of the techniques from Lesson 4.
+
+# You can find a link to the Gapminder website in the Instructor Notes.
+
+# Once you've completed your investigation, create a post in the discussions that includes:
+#       1. the variable(s) you investigated, your observations, and any summary statistics
+#       2. snippets of code that created the plots
+#       3. links to the images of your plots
+
+# Copy and paste all of the code that you used for
+# your investigation, and submit it when you are ready.
+# ====================================================================
+library('xlsx', quietly=TRUE)
+library(reshape2)
+
+sugar <- read.xlsx('indicator_sugar_consumption.xlsx', sheetIndex=1)
+
+# get rid of NA rows and columns
+sugar[ncol(sugar)] <- NULL
+sugar <- sugar[!is.na(sugar[[1]]),]
+
+# clean up the country column
+colnames(sugar)[1] <- 'country'
+sugar$country <- gsub(' ','_',sugar$country)
+
+# the countries and years
+countries <- as.character(sugar$country)
+years <- seq(1961,2004)
+
+# transpose the dataframe
+sugar2 <- as.data.frame(t(sugar[,-1]))
+colnames(sugar2) <- countries
+sugar2['year'] <- years
+
+
+# sugar per person vs. year in the US
+ggplot(sugar2, aes(x=year, y=United_States)) + geom_line() + xlab('Year') + ylab('Sugar per Person (g per day)') + ggtitle('Sugar Consumption in the United States')
+
+
+# sugar per person vs. year for all countries
+sugar3 <- melt(sugar2, id.vars='year', na.rm=TRUE, variable.name='country')
+colnames(sugar3)[3] <- 'amount'
+ggplot(sugar3, aes(x=year, y=amount)) + 
+  geom_point(alpha=1/3, position = position_jitter(h=0), color='orange') + 
+  geom_line(stat='summary', fun.y=mean) +
+  geom_line(stat ='summary', fun.y=quantile, fun.args=list(probs=0.1), linetype=2, color='blue') + 
+  geom_line(stat ='summary', fun.y=quantile, fun.args=list(probs=0.9), linetype=2, color='blue') +
+  geom_line(stat ='summary', fun.y=median, color='blue') + 
+  xlab('Year') + 
+  ylab('Sugar per Person (g per day)') +
+  ggtitle('Sugar Consumption Worldwide from 1961-2004')
+```
+

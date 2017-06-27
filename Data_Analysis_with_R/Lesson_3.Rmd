@@ -1,0 +1,200 @@
+---
+title: "Lesson 3 - Exploring One Variable"
+output: html_notebook
+---
+
+## Reading in Data
+```{r}
+getwd()
+list.files()
+pf <- read.csv('pseudo_facebook.tsv', sep = '\t')
+names(pf)
+```
+
+## Histogram of Users' Birthdays
+```{r}
+install.packages('ggplot2')
+library(ggplot2)
+
+1
+```
+
+# Use ggplot instead of qplot.
+# Introduce bin_width and scale_x_continuous to display data for each day
+```{r}
+ggplot(aes(x = dob_day), data = pf) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks = 1:31)
+```
+## Faceting
+# Create one graph for each month.
+# Use facet_wrap(~variable), break data using category variable
+```{r}
+ggplot(data = pf, aes(x = dob_day)) +
+  geom_histogram(binwidth = 31) +
+  scale_x_continuous(breaks = 1:31) +
+  facet_wrap(~dob_month)
+```
+## Friend Count
+```{r}
+ggplot(data = pf, aes(x = friend_count)) +
+  geom_histogram()
+```
+## Limiting the Axes
+```{r}
+ggplot(data = pf, aes(x = friend_count)) +
+  geom_histogram() +
+  scale_x_continuous(limits = c(0, 1000))
+```
+## Adjusting the bin width and add breaks to add step
+```{r}
+ggplot(data = pf, aes(x = friend_count)) +
+  geom_histogram(binwidth = 25) +
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50))
+```
+
+# Facet the histogram for friend counts by gender
+```{r}
+ggplot(data = pf, aes(x = friend_count)) +
+  geom_histogram(binwidth = 25) +
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) +
+  facet_wrap(~gender)
+```
+
+# Omitting NA values
+# Subset the data using data = subset() or na.omit
+```{r}
+ggplot(data = pf, aes(x = friend_count), subset(pf, !is.na(gender))) +
+  geom_histogram(binwidth = 25) +
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) +
+  facet_wrap(~gender)
+```
+## Statistics 'by' gender
+# 'by' command takes 3 inputs = a variable, a categorical variable, function
+# get summary of friend count by gender
+```{r}
+table(pf$gender)
+by(pf$friend_count, pf$gender, summary)
+```
+
+## Tenure measured in dats
+```{r}
+ggplot(aes(x = tenure), data = pf) +
+  geom_histogram(binwidth = 30, color = 'black', fill = '#099DD9')
+```
+# Tenure measured in years
+```{r}
+ggplot(aes(x = tenure/365), data = pf) +
+  geom_histogram(binwidth = .25, color = 'black', fill = '#F79420')
+```
+# Modify x-axis so that it increments in one year
+```{r}
+ggplot(aes(x = tenure/365), data = pf) +
+  geom_histogram(binwidth = .25, color = 'black', fill = '#F79420') +
+  scale_x_continuous(limits = c(0, 7), breaks = seq(1, 7, 1))
+```
+## Labeling Plots
+```{r}
+ggplot(aes(x = tenure / 365), data = pf) +
+  geom_histogram(color = 'black', fill = '#F79420') +
+  scale_x_continuous(breaks = seq(1, 7, 1), limits = c(0, 7)) +
+  xlab('Number of years using Facebook') +
+  ylab('Number of users in sample')
+```
+## Histogram of Facebook Users based on Age
+```{r}
+ggplot(aes(x = age), data = pf) +
+  geom_histogram(binwidth = 1, fill = '#5760AB') +
+  scale_x_continuous(breaks = seq(0, 113, 5))
+```
+## Installing gridExtra
+```{r}
+install.packages('gridExtra')
+library(gridExtra)
+```
+
+## Transforming Data
+```{r}
+summary(pf$friend_count)
+
+# Scale to log10
+summary(log10(pf$friend_count))
+
+# To remove negative/-infinity data, add plus one
+summary((log10(pf$friend_count+1)))
+```
+## Create Multiple Plots in One Image Output
+```{r}
+# can use scale_x_log10 and scale_x_sqrt
+library(ggplot2)
+p1<- ggplot(data = pf, aes(x = friend_count)) + geom_histogram()
+p2 <- ggplot(data = pf, aes(x = log10(friend_count))) + geom_histogram()
+p3 <- ggplot(data = pf, aes(x = sqrt(friend_count))) + geom_histogram()
+library(gridExtra)
+grid.arrange(p1, p2, p3, ncol=1, top="Creating Multiple Plots in One Output")
+```
+## Add a scaling layer
+## Observe the difference in x-axis label
+```{r}
+p1<- ggplot(data = pf, aes(x = friend_count)) + geom_histogram() 
+p2 <- ggplot(data = pf, aes(x = friend_count)) + geom_histogram() +scale_x_log10()
+p3 <- ggplot(data = pf, aes(x = friend_count)) + geom_histogram() + scale_x_sqrt()
+grid.arrange(p1, p2, p3, ncol=1, top="Creating Multiple Plots in One Output")
+```
+## Frequency Polygon
+## The shape of the frequency polygon depends on how our bins are set up - the height of the lines are the same as the bars in individual histograms, but the lines are easier to make a comparison with since they are on the same axis.
+```{r}
+ggplot(aes(x = friend_count, y = ..count../sum(..count..)),
+       data = subset(pf, !is.na(gender))) +
+  geom_freqpoly(aes(color = gender), binwidth=10) +
+  scale_x_continuous(limits = c(0, 1000), breaks = seq(0, 1000, 50)) +
+  xlab('Friend Count') +
+  ylab('Proportion of users with that friend count')
+```
+# Likes on the Web
+## Note that sum(..count..) will sum across color, so the proportions displayed are based on total users. To plot these proportions within each group, you can try y = ..density...
+## Plot for which gender makes more likes
+```{r}
+ggplot(aes(x = www_likes), data = subset(pf, !is.na(gender))) +
+  geom_freqpoly(aes(color = gender)) +
+  scale_x_log10()
+```
+```{r}
+by(pf$www_likes, pf$gender, sum)
+```
+## Box Plots, Quartiles, And Friendships
+```{r}
+ggplot(aes(x = www_likes, y = friend_count), data = subset(pf, !is.na(gender))) +
+  geom_boxplot(aes(color = gender), outlier.shape = 1) +
+  coord_cartesian(ylim = c(0,1000))
+  
+```
+```{r}
+ggplot(aes(x = www_likes, y = friend_count), data = subset(pf, !is.na(gender))) +
+  geom_boxplot(aes(color = gender), outlier.shape = 1) +
+  coord_cartesian(ylim = c(0,250))
+```
+```{r}
+by(pf$friend_count, pf$gender, summary)
+```
+```{r}
+by(pf$friendships_initiated, pf$gender, summary)
+```
+## Getting Logical
+```{r}
+summary(pf$mobile_likes)
+
+summary(pf$mobile_likes > 0)
+
+mobile_check_in <- NA
+pf$mobile_check_in <- ifelse(pf$mobile_likes > 0, 1, 0)
+pf$mobile_check_in <- factor(pf$mobile_check_in)
+summary(pf$mobile_check_in)
+
+```
+## % check in using mobile
+## The sum() function will not work since mobile_check_in is a factor variable. You can use the length() function to determine the number of values in a vector.
+```{r}
+sum(pf$mobile_check_in == 1)/length(pf$mobile_check_in)
+```
+
