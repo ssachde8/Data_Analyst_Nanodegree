@@ -1,0 +1,4 @@
+1. Book - Mastering Machine Learning with scikit-learn
+2. Udacity Course Content
+3. http://scikit-learn.org/
+4. https://www.cs.cornell.edu/courses/cs578/2003fa/performance_measures.pdf
