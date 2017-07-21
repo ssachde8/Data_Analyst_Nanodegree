@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #!/usr/bin/python
 
 import sys
@@ -10,7 +11,7 @@ from tester import test_classifier, dump_classifier_and_data
 from helper import *
 
 from matplotlib import pyplot
-%matplotlib inline
+%matplotlib
 
 
 from sklearn.tree import DecisionTreeClassifier
@@ -114,8 +115,9 @@ for name in data_dict:
 ## 2 outliers are present in data
 # 'TOTAL' is the accumulated value over all entries and hence should be removed
 # 'THE TRAVEL AGENCY IN THE PARK' does not represent a person, hence should be removed
+# 'LOCKHART EUGENE E' has all NaN values;does not contribute to the dataset. Hence removed.
 
-outliers = ['TOTAL', 'THE TRAVEL AGENCY IN THE PARK']
+outliers = ['TOTAL', 'THE TRAVEL AGENCY IN THE PARK', 'LOCKHART EUGENE E']
 for outlier in outliers:
     data_dict.pop(outlier, 0)
 
@@ -194,6 +196,7 @@ features_train, features_test, labels_train, labels_test = train_test_split(feat
 ######### Step 4 : Work with different classifiers ##########
 #############################################################
 
+
 clf_names = [
         "Naive Bayes",     
         "Nearest Neighbors", 
@@ -226,7 +229,7 @@ for name, clf in zip(clf_names, classifiers):
         evaluate.evaluate_clf(clf, features, labels, num_iters=1000, test_size=0.3)
         print("Accuracy: %0.2f (+/- %0.2f)" % (scores.mean(), scores.std() * 2))
         print "\n-> Visualising Performance ----"
-        plot_roc()
+        plot_roc(clf, features_test, labels_test)
         print " "
         print "\nx------------------------------------------------------------------------------x"
 
@@ -270,8 +273,10 @@ print 'Recall:', recall_score(labels_test, predictions)
 ###### Step 6 : Test the Classifier #######
 ###########################################
 
-clf = DecisionTreeClassifier(criterion='gini', max_depth=6, min_samples_leaf=4, min_samples_split=4)
+clf = DecisionTreeClassifier(criterion='gini', max_depth=4, min_samples_leaf=4, min_samples_split=5)
 clf.fit(features, labels)
+plot_roc(clf, features_test, labels_test)
+
 
 test_classifier(clf, my_dataset, features_list)
 
@@ -279,3 +284,4 @@ test_classifier(clf, my_dataset, features_list)
 # anyone can run/check your results.
 
 dump_classifier_and_data(clf, my_dataset, features_list)
+
