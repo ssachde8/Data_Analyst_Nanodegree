@@ -11,8 +11,6 @@ from tester import test_classifier, dump_classifier_and_data
 from helper import *
 
 from matplotlib import pyplot
-%matplotlib
-
 
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import ExtraTreesClassifier
@@ -69,6 +67,10 @@ features_list = poi + financial_features + email_features
 # Load the dictionary containing the dataset
 with open("final_project_dataset.pkl", "r") as data_file:
     data_dict = pickle.load(data_file)
+    
+# OPTIONAL: Transforming the dataset to pandas dataframe for easier handling
+# data_df = pd.DataFrame.from_dict(data_dict, orient='index')
+# data_df.replace(to_replace='NaN', value=np.nan, inplace=True)
     
 ## Print information about dataset
 print "There are " + str(len(data_dict['SKILLING JEFFREY K'])) + " features in the dataset."
