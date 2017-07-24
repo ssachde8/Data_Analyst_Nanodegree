@@ -1,0 +1,5 @@
+References:
+- Udacity Content
+- MongoDB official website
+- Python Website
+- StackOverflow

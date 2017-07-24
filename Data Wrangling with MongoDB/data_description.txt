@@ -1,0 +1,6 @@
+For this project I chose the Phoenix, Arizona dataset. During the time of chosing the dataset
+I was pursuing my Masters in Information Technology at Arizona State University. I was
+very excited to explore the data of a place where I was studying.
+
+Link: http://www.openstreetmap.org/search?query=phoenix%2C%20arizona#map=12/33.4483/-112.0739
+
